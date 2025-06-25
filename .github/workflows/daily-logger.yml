@@ -1,0 +1,43 @@
+name: Daily Date Logger
+
+on:
+  schedule:
+    # Runs every day at 9:00 AM UTC
+    - cron: '0 9 * * *'
+  # Allow manual trigger for testing
+  workflow_dispatch:
+
+jobs:
+  log-daily-date:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Run daily logger script
+      run: python daily_logger.py
+    
+    - name: Configure Git
+      run: |
+        git config --local user.email "anusha.nooka@gmail.com"
+        git config --local user.name "anushanuka"
+    
+    - name: Commit and push changes
+      run: |
+        git add logs/daily_log.txt
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Daily log entry - $(date +'%Y-%m-%d')"
+          git push
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
